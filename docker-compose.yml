@@ -36,3 +36,6 @@ services:
       - ./client:/usr/src/app
     ports:
       - "${CLIENT_LOCAL_PORT}:${CLIENT_REMOTE_PORT}"
+    depends_on:
+      app:
+        condition: service_started
