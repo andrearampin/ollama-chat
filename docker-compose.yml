@@ -25,14 +25,14 @@ services:
     ports:
       - "${OLLAMA_LOCAL_PORT}:${OLLAMA_REMOTE_PORT}"
   client:
-    image: node:alpine
     container_name: client
-    working_dir: /srv/app
+    build: client
+    working_dir: /usr/src/app
     command: "npm run dev"
     restart: unless-stopped
     env_file:
       - ./.env
     volumes:
-      - ./chat:/srv/app
+      - ./client:/usr/src/app
     ports:
       - "${CLIENT_LOCAL_PORT}:${CLIENT_REMOTE_PORT}"
