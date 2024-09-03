@@ -1,0 +1,38 @@
+services:
+  app:
+    container_name: app
+    build: app
+    command: "flask --app app run --host=0.0.0.0 --debug"
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      - "${APP_LOCAL_PORT}:${APP_REMOTE_PORT}"
+    volumes:
+      - ./app:/usr/src/app
+      - ./volumes/app/pip:/root/.cache/pip
+      - ./volumes/app/pip3:/usr/local/lib/python3.13/site-packages
+      - ./volumes/app/nltk_data:/root/nltk_data
+    depends_on:
+      ollama:
+        condition: service_started
+  ollama:
+    container_name: ollama
+    image: ollama/ollama:0.1.30
+    restart: unless-stopped
+    volumes:
+      - ./volumes/ollama:/root/.ollama
+    ports:
+      - "${OLLAMA_LOCAL_PORT}:${OLLAMA_REMOTE_PORT}"
+  client:
+    image: node:alpine
+    container_name: client
+    working_dir: /srv/app
+    command: "npm run dev"
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    volumes:
+      - ./chat:/srv/app
+    ports:
+      - "${CLIENT_LOCAL_PORT}:${CLIENT_REMOTE_PORT}"
