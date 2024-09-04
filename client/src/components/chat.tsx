@@ -71,6 +71,16 @@ export default function Chat() {
               })
             }
           </div>
+          {
+            mutation.isPending &&
+            <div className="flex items-end gap-2">
+              <div className="loader flex justify-center items-center space-x-1">
+                  <span className="w-2 h-2 bg-black rounded-full animation-loader"></span>
+                  <span className="w-2 h-2 bg-black rounded-full animation-loader animation-delay-200"></span>
+                  <span className="w-2 h-2 bg-black rounded-full animation-loader animation-delay-600"></span>
+              </div>
+            </div>
+          }
         </main>
         <footer className="border-t dark:border-zinc-700 p-4">
           <form onSubmit={handleSubmit} className="flex items-center gap-2">
@@ -81,8 +91,7 @@ export default function Chat() {
               onChange={(e) => setPrompt(e.currentTarget.value)} 
               name="content"
             />
-            {mutation.isPending && <UpdateIcon className="mr-2 h-4 w-4 animate-spin" />}
-            {!mutation.isPending && <Button>Send</Button>}
+            <Button disabled={mutation.isPending}>Send</Button>
           </form>
         </footer>
       </section>
