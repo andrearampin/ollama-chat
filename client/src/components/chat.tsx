@@ -1,7 +1,6 @@
 import { createPrompt, NewPrompt, PromptResponse } from "@/apis/prompt";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { UpdateIcon } from "@radix-ui/react-icons";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { BotStatus } from "@/components/bot_status";
@@ -43,7 +42,7 @@ export default function Chat() {
   };
 
   return (
-    <div key="1" className="flex h-screen bg-white dark:bg-zinc-800">
+    <div key="1" className="flex h-screen bg-white dark:bg-zinc-800 ">
       <section className="flex flex-col w-full">
         <header className="border-b dark:border-zinc-700 p-4">
           <BotStatus />
@@ -54,7 +53,7 @@ export default function Chat() {
               messages.map((m, i) => {
                 if (m.source === 'bot') {
                   return (
-                    <div className="flex items-end gap-2" key={i}>
+                    <div className="flex items-end gap-2 mr-20" key={i}>
                       <div className="rounded-lg bg-zinc-200 dark:bg-zinc-700 p-2">
                         <p className="text-sm">{m.content}</p>
                       </div>
@@ -62,7 +61,7 @@ export default function Chat() {
                   )
                 }
                 return (
-                  <div className="flex items-end gap-2 justify-end" key={i}>
+                  <div className="flex items-end gap-2 justify-end ml-20" key={i}>
                     <div className="rounded-lg bg-blue-500 text-white p-2">
                       <p className="text-sm">{m.content}</p>
                     </div>
