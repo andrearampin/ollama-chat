@@ -1,4 +1,4 @@
-from flask import Flask, request, g, current_app, jsonify
+from flask import Flask, request, g, current_app, jsonify, Response
 from flask_cors import CORS
 from config import Config
 from services.llm_client import LlmClient
@@ -16,7 +16,7 @@ def create_app():
     def ping():
         return jsonify({"ok": True})
 
-    @app.route("/prompt", methods=["POST"])
+    @app.route("/prompt", methods=["POST"], endpoint="prompt")
     def prompt():
         input = request.json["content"].strip()
         llm_client = get_llm_client()
@@ -24,6 +24,15 @@ def create_app():
         output = llm_client.get_llm_response(input=input)
 
         return jsonify({"content": output})
+    
+    @app.route("/prompt/stream", methods=["POST"], endpoint="prompt_stream")
+    def prompt_stream():
+        input = request.json["content"].strip()
+        llm_client = get_llm_client()
+
+        output = llm_client.get_llm_response_stream(input=input)
+
+        return Response(output, mimetype="text/event-stream")
 
     return app
 

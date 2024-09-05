@@ -1,4 +1,4 @@
-import { createPrompt, NewPrompt, PromptResponse } from "@/apis/prompt";
+import { createPrompt, createSteamPrompt, NewPrompt, PromptResponse } from "@/apis/prompt";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useMutation } from "@tanstack/react-query";
@@ -8,6 +8,11 @@ import { BotStatus } from "@/components/bot_status";
 type Message = {
   source: 'bot' | 'user',
   content: string
+}
+
+type StreamMutationData = {
+  messages: Array<Message>,
+  prompt: NewPrompt
 }
 
 export default function Chat() {
@@ -27,22 +32,41 @@ export default function Chat() {
     },
   });
 
+  const streamMutation = useMutation({
+    mutationFn: async (data: StreamMutationData) => {
+      const { messages, prompt } = data;
+  
+      const newMessages: Array<Message> = [
+        ...messages,
+        { source: 'bot', content: '' }
+      ];
+      const ml = newMessages.length;
+      
+      await createSteamPrompt(prompt, (chunk: string) => {
+
+        const localMessages = newMessages;
+        
+        // Append the chunk to the last bot message content
+        localMessages[ml - 1].content += chunk;
+        
+        // Update the messages state with the new chunk
+        setMessages([...localMessages]);
+      });
+    }
+  });
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const newMessages: Array<Message> = [ ...messages, { source: 'user', content: prompt } ]
+    setMessages(newMessages)
+
+    streamMutation.mutate({ messages: newMessages, prompt: { content: prompt }});
     setPrompt('')
-    const formData = new FormData(event.currentTarget);
-    const prompt: NewPrompt = {
-      content: formData.get('content') as string,
-    };
-    setMessages([
-      ...messages,
-      { source: 'user', content: prompt.content }
-    ])
-    mutation.mutate(prompt);
   };
 
   return (
-    <div key="1" className="flex h-screen bg-white dark:bg-zinc-800 ">
+    <div key="1" className="flex h-screen bg-white dark:bg-zinc-800">
       <section className="flex flex-col w-full">
         <header className="border-b dark:border-zinc-700 p-4">
           <BotStatus />
@@ -70,16 +94,6 @@ export default function Chat() {
               })
             }
           </div>
-          {
-            mutation.isPending &&
-            <div className="flex items-end gap-2">
-              <div className="loader flex justify-center items-center space-x-1">
-                  <span className="w-2 h-2 bg-black rounded-full animation-loader"></span>
-                  <span className="w-2 h-2 bg-black rounded-full animation-loader animation-delay-200"></span>
-                  <span className="w-2 h-2 bg-black rounded-full animation-loader animation-delay-600"></span>
-              </div>
-            </div>
-          }
         </main>
         <footer className="border-t dark:border-zinc-700 p-4">
           <form onSubmit={handleSubmit} className="flex items-center gap-2">
@@ -90,7 +104,17 @@ export default function Chat() {
               onChange={(e) => setPrompt(e.currentTarget.value)} 
               name="content"
             />
-            <Button disabled={mutation.isPending}>Send</Button>
+            <Button disabled={streamMutation.isPending}>
+              {
+                streamMutation.isPending
+                ? <div className='flex space-x-1'>
+                    <div className='h-2 w-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]'></div>
+                    <div className='h-2 w-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s]'></div>
+                    <div className='h-2 w-2 bg-white rounded-full animate-bounce'></div>
+                  </div>
+                : <>Send</>
+              }
+            </Button>
           </form>
         </footer>
       </section>
